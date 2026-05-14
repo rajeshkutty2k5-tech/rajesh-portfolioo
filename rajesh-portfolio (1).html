@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RAJESH  P — Full Stack Developer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  :root {
+    --red: #E0001B;
+    --red-dark: #9B000F;
+    --red-light: #FF1F38;
+    --blue: #0D1B5E;
+    --blue-mid: #1A2F9E;
+    --blue-light: #2244CC;
+    --web: #C0001466;
+    --gold: #FFD700;
+    --white: #F5F5F5;
+    --off-white: #EDE8E0;
+    --dark: #0A0A0F;
+    --gray: #1A1A2E;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Spider cursor */
+  #spider-cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s;
+    width: 36px; height: 36px;
+  }
+  #spider-cursor svg { width: 100%; height: 100%; }
+  #spider-cursor.hover { transform: translate(-50%, -50%) scale(1.5); }
+
+  /* Web trail canvas */
+  #web-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* ---- HERO INTRO ANIMATION ---- */
+  #intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0A0A0F;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow: hidden;
+  }
+  #intro-overlay .curtain-left,
+  #intro-overlay .curtain-right {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 51%;
+    background: #0A0A0F;
+    z-index: 2;
+    transition: transform 1s cubic-bezier(0.77,0,0.175,1);
+  }
+  #intro-overlay .curtain-left { left: 0; }
+  #intro-overlay .curtain-right { right: 0; }
+  #intro-overlay.open .curtain-left { transform: translateX(-100%); }
+  #intro-overlay.open .curtain-right { transform: translateX(100%); }
+
+  .intro-spider {
+    position: relative;
+    z-index: 3;
+    animation: introDrop 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    opacity: 0;
+  }
+  @keyframes introDrop {
+    0% { opacity: 0; transform: translateY(-120px) rotate(-10deg); }
+    60% { opacity: 1; transform: translateY(10px) rotate(3deg); }
+    100% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  }
+  .intro-web-line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.1));
+    z-index: 3;
+    height: 0;
+    transition: height 0.6s ease;
+  }
+  #intro-overlay.drop .intro-web-line { height: 45vh; }
+
+  .intro-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 6rem);
+    letter-spacing: 0.15em;
+    color: var(--white);
+    z-index: 3;
+    opacity: 0;
+    text-align: center;
+  }
+  .intro-name span { color: var(--red); }
+  .intro-name.show {
+    animation: glitchIn 0.6s steps(1) forwards;
+  }
+  @keyframes glitchIn {
+    0%  { opacity:0; transform: skewX(20deg) translateX(-10px); clip-path: inset(40% 0 40% 0); }
+    20% { opacity:1; transform: skewX(-8deg) translateX(6px);  clip-path: inset(0% 0 60% 0); }
+    40% { opacity:1; transform: skewX(4deg) translateX(-3px);  clip-path: inset(30% 0 0% 0); }
+    60% { opacity:1; transform: skewX(-2deg) translateX(2px);  clip-path: inset(0% 0 0% 0); }
+    80% { opacity:1; transform: skewX(1deg);  clip-path: inset(0); }
+    100%{ opacity:1; transform: none; clip-path: none; }
+  }
+
+  .intro-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(224,0,27,0.8);
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .intro-sub.show { opacity: 1; }
+
+  /* Hide body scroll during intro */
+  body.intro-active { overflow: hidden; }
+
+  /* Hero elements start hidden for JS to animate */
+  .hero-animate {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  .web-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.07;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 4rem;
+    background: linear-gradient(to bottom, rgba(10,10,15,0.95), transparent);
+    backdrop-filter: blur(4px);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.1em;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--red); }
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--off-white);
+    text-decoration: none;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0; right: 0;
+    height: 2px;
+    background: var(--red);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s;
+  }
+  .nav-links a:hover { color: var(--red-light); }
+  .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    z-index: 1;
+    padding: 0 4rem;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 50%, rgba(13,27,94,0.6) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 80% at 20% 80%, rgba(224,0,27,0.15) 0%, transparent 60%),
+      var(--dark);
+    z-index: 0;
+  }
+
+  /* Comic halftone dots */
+  .halftone {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+    z-index: 0;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 650px;
+  }
+
+  .hero-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 40px; height: 2px;
+    background: var(--red);
+  }
+
+  .hero-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 10vw, 8rem);
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.5rem;
+  }
+  .hero-name .first { color: var(--white); }
+  .hero-name .last {
+    color: transparent;
+    -webkit-text-stroke: 2px var(--red);
+    display: block;
+  }
+
+  .hero-role {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--off-white);
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgba(245,245,245,0.65);
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.85rem 2rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .btn-primary {
+    background: var(--red);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: var(--red-light); transform: translateY(-2px); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--white);
+    border: 1.5px solid rgba(245,245,245,0.3);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .btn-outline:hover {
+    border-color: var(--red);
+    color: var(--red);
+    transform: translateY(-2px);
+  }
+
+  /* Spider graphic */
+  .hero-spider {
+    position: absolute;
+    right: -2%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: min(55vw, 700px);
+    z-index: 1;
+    opacity: 0.9;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(-50%) rotate(-2deg); }
+    50% { transform: translateY(-52%) rotate(2deg); }
+  }
+
+  /* Web strand from top */
+  .web-strand {
+    position: absolute;
+    top: 0;
+    right: 18%;
+    width: 3px;
+    height: 160px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+    z-index: 3;
+  }
+
+  /* SECTION COMMON */
+  section {
+    position: relative;
+    z-index: 2;
+    padding: 6rem 4rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 3.5rem;
+  }
+  .section-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5rem;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(224,0,27,0.3);
+    line-height: 1;
+    user-select: none;
+  }
+  .section-title-wrap { display: flex; flex-direction: column; gap: 0.2rem; }
+  .section-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(224,0,27,0.5), transparent);
+    margin-left: auto;
+  }
+
+  /* ABOUT */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .about-text p {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: rgba(245,245,245,0.7);
+    margin-bottom: 1.2rem;
+  }
+
+  .about-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+  .stat-card {
+    border-left: 3px solid var(--red);
+    padding-left: 1rem;
+  }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: var(--red);
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(245,245,245,0.5);
+    margin-top: 0.2rem;
+  }
+
+  .about-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .spider-emblem {
+    width: 260px;
+    height: 260px;
+  }
+
+  /* SKILLS */
+  .skills-bg {
+    background: linear-gradient(135deg, rgba(13,27,94,0.2) 0%, transparent 50%);
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .skill-category {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-top: 3px solid var(--red);
+    padding: 1.8rem;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .skill-category:hover {
+    border-color: rgba(255,255,255,0.15);
+    border-top-color: var(--red-light);
+    transform: translateY(-4px);
+    background: rgba(255,255,255,0.05);
+  }
+
+  .skill-cat-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 1.2rem;
+  }
+
+  .skill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .skill-pill {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 0.3rem 0.85rem;
+    background: rgba(224,0,27,0.1);
+    border: 1px solid rgba(224,0,27,0.25);
+    color: var(--off-white);
+    transition: all 0.2s;
+  }
+  .skill-pill:hover {
+    background: rgba(224,0,27,0.25);
+    border-color: var(--red);
+    color: var(--white);
+  }
+
+  /* PROJECTS */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .project-card {
+    position: relative;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.07);
+    overflow: hidden;
+    transition: all 0.35s;
+    group: true;
+  }
+  .project-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--blue-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .project-card:hover::before { transform: scaleX(1); }
+  .project-card:hover {
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-6px);
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .project-card.featured {
+    grid-column: span 2;
+  }
+
+  .project-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--red-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: rgba(255,255,255,0.1);
+    letter-spacing: 0.2em;
+    position: relative;
+    overflow: hidden;
+  }
+  .project-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%);
+  }
+
+  .project-body { padding: 1.5rem; }
+
+  .project-type {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.5rem;
+  }
+
+  .project-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+    color: var(--white);
+  }
+
+  .project-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: rgba(245,245,245,0.55);
+    margin-bottom: 1.2rem;
+  }
+
+  .project-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.2rem;
+  }
+  .tech-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.6rem;
+    background: rgba(13,27,94,0.5);
+    border: 1px solid rgba(34,68,204,0.4);
+    color: rgba(245,245,245,0.7);
+  }
+
+  .project-links { display: flex; gap: 0.75rem; }
+  .proj-link {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--red);
+    text-decoration: none;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .proj-link:hover { color: var(--red-light); }
+  .proj-link svg { width: 14px; height: 14px; }
+
+  /* EXPERIENCE */
+  .experience-bg {
+    background: radial-gradient(ellipse at right bottom, rgba(224,0,27,0.07) 0%, transparent 60%);
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 2.5rem;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--red), transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 3rem;
+    padding-left: 2rem;
+  }
+  .timeline-dot {
+    position: absolute;
+    left: -2.5rem;
+    top: 8px;
+    width: 14px; height: 14px;
+    background: var(--red);
+    border: 3px solid var(--dark);
+    border-radius: 50%;
+    transform: translateX(50%);
+    left: -2.56rem;
+  }
+  .timeline-dot.current {
+    background: var(--red);
+    box-shadow: 0 0 12px var(--red);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 8px var(--red); }
+    50% { box-shadow: 0 0 18px var(--red), 0 0 30px rgba(224,0,27,0.3); }
+  }
+
+  .exp-period {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.4rem;
+  }
+  .exp-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.7rem;
+    letter-spacing: 0.05em;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 0.2rem;
+  }
+  .exp-company {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(245,245,245,0.5);
+    margin-bottom: 0.9rem;
+    letter-spacing: 0.05em;
+  }
+  .exp-desc {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: rgba(245,245,245,0.6);
+    max-width: 600px;
+  }
+  .exp-tags {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  /* CONTACT */
+  .contact-section {
+    background: linear-gradient(135deg, rgba(13,27,94,0.3) 0%, rgba(224,0,27,0.1) 100%);
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: start;
+  }
+
+  .contact-left h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    line-height: 0.95;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+  .contact-left h2 span { color: var(--red); }
+  .contact-left p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(245,245,245,0.6);
+    margin-bottom: 2rem;
+  }
+
+  .contact-links { display: flex; flex-direction: column; gap: 0.75rem; }
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--off-white);
+    text-decoration: none;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    transition: all 0.2s;
+  }
+  .contact-link:hover { color: var(--red-light); border-bottom-color: var(--red); }
+  .contact-link svg { width: 20px; height: 20px; opacity: 0.6; }
+
+  /* Form */
+  .contact-form { display: flex; flex-direction: column; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+  .form-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,245,245,0.4);
+  }
+  .form-input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 0.85rem 1rem;
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--red); background: rgba(255,255,255,0.06); }
+  .form-input::placeholder { color: rgba(245,245,245,0.25); }
+  textarea.form-input { min-height: 130px; resize: vertical; }
+
+  /* Footer */
+  footer {
+    position: relative;
+    z-index: 2;
+    padding: 2rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  footer p {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: rgba(245,245,245,0.3);
+  }
+  footer p span { color: var(--red); }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* Comic panel accent */
+  .panel-accent {
+    position: absolute;
+    top: 2rem; right: 2rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 7rem;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.04);
+    user-select: none;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 4rem 1.5rem; }
+    .hero { padding: 0 1.5rem; }
+    .hero-spider { display: none; }
+    .about-grid, .contact-grid, .projects-grid { grid-template-columns: 1fr; }
+    .project-card.featured { grid-column: span 1; }
+    footer { flex-direction: column; gap: 0.5rem; text-align: center; padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Spider cursor -->
+<canvas id="web-canvas"></canvas>
+<div id="spider-cursor">
+  <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+    <!-- Spider body -->
+    <ellipse cx="18" cy="20" rx="7" ry="5" fill="#E0001B"/>
+    <ellipse cx="18" cy="13" rx="5.5" ry="6" fill="#E0001B"/>
+    <!-- Eyes -->
+    <ellipse cx="15.5" cy="11.5" rx="2.5" ry="1.8" fill="white" transform="rotate(-10,15.5,11.5)"/>
+    <ellipse cx="20.5" cy="11.5" rx="2.5" ry="1.8" fill="white" transform="rotate(10,20.5,11.5)"/>
+    <!-- Legs -->
+    <g stroke="#E0001B" stroke-width="1.4" fill="none" stroke-linecap="round">
+      <path d="M12,18 Q6,15 2,12"/>
+      <path d="M12,20 Q5,20 1,22"/>
+      <path d="M12,22 Q6,26 3,30"/>
+      <path d="M24,18 Q30,15 34,12"/>
+      <path d="M24,20 Q31,20 35,22"/>
+      <path d="M24,22 Q30,26 33,30"/>
+    </g>
+    <!-- Web strand above -->
+    <line x1="18" y1="0" x2="18" y2="7" stroke="rgba(255,255,255,0.6)" stroke-width="1.2"/>
+  </svg>
+</div>
+
+<!-- INTRO OVERLAY -->
+<div id="intro-overlay">
+  <div class="curtain-left"></div>
+  <div class="curtain-right"></div>
+  <div class="intro-web-line"></div>
+  <div class="intro-spider" id="introSpider">
+    <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="60" cy="72" rx="24" ry="16" fill="#CC0015"/>
+      <ellipse cx="60" cy="46" rx="19" ry="21" fill="#CC0015"/>
+      <ellipse cx="50" cy="40" rx="8" ry="6" fill="white" transform="rotate(-12,50,40)"/>
+      <ellipse cx="70" cy="40" rx="8" ry="6" fill="white" transform="rotate(12,70,40)"/>
+      <g stroke="#CC0015" stroke-width="4" fill="none" stroke-linecap="round">
+        <path d="M38,60 Q18,50 4,38"/>
+        <path d="M38,66 Q16,66 2,72"/>
+        <path d="M38,72 Q18,84 6,96"/>
+        <path d="M82,60 Q102,50 116,38"/>
+        <path d="M82,66 Q104,66 118,72"/>
+        <path d="M82,72 Q102,84 114,96"/>
+      </g>
+      <g stroke="rgba(255,255,255,0.25)" stroke-width="1" fill="none">
+        <ellipse cx="60" cy="72" rx="24" ry="16"/>
+        <line x1="36" y1="72" x2="84" y2="72"/>
+        <line x1="60" y1="56" x2="60" y2="88"/>
+      </g>
+    </svg>
+  </div>
+  <div class="intro-name" id="introName">RAJESH <span>P</span></div>
+  <div class="intro-sub" id="introSub">Full Stack Developer</div>
+</div>
+
+<!-- Spider-web SVG background -->
+<svg class="web-bg" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow"><feGaussianBlur stdDeviation="1" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <!-- Web strands radiating from top-right -->
+  <g stroke="#E0001B" stroke-width="0.7" fill="none" filter="url(#glow)">
+    <line x1="1440" y1="0" x2="0" y2="900"/>
+    <line x1="1440" y1="0" x2="200" y2="900"/>
+    <line x1="1440" y1="0" x2="500" y2="900"/>
+    <line x1="1440" y1="0" x2="800" y2="900"/>
+    <line x1="1440" y1="0" x2="1100" y2="900"/>
+    <line x1="1440" y1="0" x2="1440" y2="600"/>
+    <line x1="1440" y1="0" x2="900" y2="400"/>
+    <line x1="1440" y1="0" x2="600" y2="300"/>
+    <!-- Concentric arcs -->
+    <path d="M 1440,0 Q 1000,200 600,400 Q 200,600 0,900" stroke-dasharray="4,8"/>
+    <path d="M 1440,0 Q 1100,300 800,500 Q 500,700 200,900" stroke-dasharray="4,8"/>
+    <path d="M 1440,0 Q 1200,150 1000,350 Q 800,550 600,900" stroke-dasharray="4,8"/>
+  </g>
+</svg>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">R<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Work</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="btn btn-primary" style="font-size:0.78rem; padding:0.6rem 1.5rem;">Hire Me</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="halftone"></div>
+  <div class="web-strand"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag hero-animate">Full Stack Developer</div>
+    <div class="hero-name hero-animate">
+      <span class="first">RAJESH</span>
+      <span class="last">P</span>
+    </div>
+    <div class="hero-role hero-animate">Building the Web, One Swing at a Time</div>
+    <p class="hero-desc hero-animate">
+      I craft fast, immersive, and beautiful digital experiences — from pixel-perfect frontends to robust backend systems. Based in Chennai, India.
+    </p>
+    <div class="hero-cta hero-animate">
+      <a href="#projects" class="btn btn-primary">View My Work ↓</a>
+      <a href="#contact" class="btn btn-outline">Get In Touch</a>
+    </div>
+  </div>
+
+  <!-- Spider-Man SVG illustration -->
+  <svg class="hero-spider" viewBox="0 0 500 600" xmlns="http://www.w3.org/2000/svg">
+    <!-- Web line from top -->
+    <line x1="250" y1="0" x2="250" y2="80" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+    <!-- Body -->
+    <ellipse cx="250" cy="280" rx="80" ry="100" fill="#CC0015"/>
+    <!-- Head -->
+    <ellipse cx="250" cy="165" rx="58" ry="62" fill="#CC0015"/>
+    <!-- Eyes (classic spider-man white eye slits) -->
+    <ellipse cx="228" cy="158" rx="22" ry="15" fill="white" transform="rotate(-15, 228, 158)"/>
+    <ellipse cx="272" cy="158" rx="22" ry="15" fill="white" transform="rotate(15, 272, 158)"/>
+    <!-- Black outline on eyes -->
+    <ellipse cx="228" cy="158" rx="22" ry="15" fill="none" stroke="#111" stroke-width="2" transform="rotate(-15, 228, 158)"/>
+    <ellipse cx="272" cy="158" rx="22" ry="15" fill="none" stroke="#111" stroke-width="2" transform="rotate(15, 272, 158)"/>
+    <!-- Blue torso stripe -->
+    <ellipse cx="250" cy="310" rx="50" ry="65" fill="#0D1B5E"/>
+    <!-- Blue arms upper -->
+    <path d="M 172,240 Q 100,200 50,160" stroke="#0D1B5E" stroke-width="32" fill="none" stroke-linecap="round"/>
+    <path d="M 328,240 Q 400,200 450,160" stroke="#0D1B5E" stroke-width="32" fill="none" stroke-linecap="round"/>
+    <!-- Red arms lower -->
+    <path d="M 172,240 Q 100,200 50,160" stroke="#CC0015" stroke-width="22" fill="none" stroke-linecap="round"/>
+    <path d="M 328,240 Q 400,200 450,160" stroke="#CC0015" stroke-width="22" fill="none" stroke-linecap="round"/>
+    <!-- Hands -->
+    <circle cx="50" cy="160" r="16" fill="#CC0015"/>
+    <circle cx="450" cy="160" r="16" fill="#CC0015"/>
+    <!-- Blue legs -->
+    <path d="M 210,370 Q 185,460 170,560" stroke="#0D1B5E" stroke-width="34" fill="none" stroke-linecap="round"/>
+    <path d="M 290,370 Q 315,460 330,560" stroke="#0D1B5E" stroke-width="34" fill="none" stroke-linecap="round"/>
+    <!-- Red legs overlay -->
+    <path d="M 210,370 Q 185,460 170,560" stroke="#CC0015" stroke-width="22" fill="none" stroke-linecap="round"/>
+    <path d="M 290,370 Q 315,460 330,560" stroke="#CC0015" stroke-width="22" fill="none" stroke-linecap="round"/>
+    <!-- Feet -->
+    <ellipse cx="165" cy="560" rx="22" ry="12" fill="#0D1B5E"/>
+    <ellipse cx="335" cy="560" rx="22" ry="12" fill="#0D1B5E"/>
+    <!-- Spider emblem on chest -->
+    <g transform="translate(250,295)" fill="#0D1B5E">
+      <ellipse cx="0" cy="0" rx="18" ry="10"/>
+      <line x1="-22" y1="-5" x2="22" y2="5" stroke="#0D1B5E" stroke-width="5"/>
+      <line x1="-22" y1="5" x2="22" y2="-5" stroke="#0D1B5E" stroke-width="5"/>
+      <line x1="0" y1="-14" x2="0" y2="14" stroke="#0D1B5E" stroke-width="5"/>
+    </g>
+    <!-- Web pattern on red areas -->
+    <g stroke="rgba(0,0,0,0.15)" stroke-width="1" fill="none">
+      <line x1="210" y1="130" x2="290" y2="130"/>
+      <line x1="200" y1="150" x2="300" y2="150"/>
+      <line x1="194" y1="170" x2="306" y2="170"/>
+      <line x1="192" y1="190" x2="308" y2="190"/>
+      <line x1="230" y1="120" x2="220" y2="200"/>
+      <line x1="250" y1="115" x2="250" y2="200"/>
+      <line x1="270" y1="120" x2="280" y2="200"/>
+    </g>
+    <!-- Glow under feet -->
+    <ellipse cx="248" cy="590" rx="60" ry="8" fill="rgba(224,0,27,0.15)"/>
+  </svg>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="panel-accent">ABOUT</div>
+  <div class="section-header reveal">
+    <span class="section-num">01</span>
+    <div class="section-title-wrap">
+      <span class="section-tag">Background</span>
+      <h2 class="section-title">The Origin Story</h2>
+    </div>
+    <div class="section-line"></div>
+  </div>
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <p>Hey there! I'm <strong style="color:var(--white)">Rajesh P</strong>, a full-stack developer from , India. Like everyone's favourite web-slinger, I swing between front-end and back-end — crafting experiences that are fast, responsive, and visually engaging.</p>
+      <p>I have a passion for writing clean, scalable code and turning complex problems into elegant, user-friendly solutions. Whether it's an interactive UI or a production-grade API, I bring the same attention to detail and creative problem-solving to every project.</p>
+      <p>When I'm not coding, you'll find me exploring new frameworks, contributing to open-source, or hunting for my next great idea.</p>
+      <div class="about-stats">
+        <div class="stat-card reveal reveal-delay-1">
+          <div class="stat-num">3+</div>
+          <div class="stat-label">Projects Built</div>
+        </div>
+        <div class="stat-card reveal reveal-delay-2">
+          <div class="stat-num">fresher</div>
+          <div class="stat-label">Years Exp</div>
+        </div>
+        <div class="stat-card reveal reveal-delay-3">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">Curiosity</div>
+        </div>
+      </div>
+    </div>
+    <div class="about-visual reveal">
+      <!-- Spider emblem decorative -->
+      <svg class="spider-emblem" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="130" cy="130" r="120" fill="none" stroke="rgba(224,0,27,0.15)" stroke-width="1"/>
+        <circle cx="130" cy="130" r="90" fill="none" stroke="rgba(224,0,27,0.1)" stroke-width="1"/>
+        <circle cx="130" cy="130" r="60" fill="none" stroke="rgba(224,0,27,0.08)" stroke-width="1"/>
+        <!-- Radial lines -->
+        <g stroke="rgba(224,0,27,0.12)" stroke-width="1">
+          <line x1="130" y1="10" x2="130" y2="250"/>
+          <line x1="10" y1="130" x2="250" y2="130"/>
+          <line x1="45" y1="45" x2="215" y2="215"/>
+          <line x1="215" y1="45" x2="45" y2="215"/>
+          <line x1="130" y1="10" x2="250" y2="200"/>
+          <line x1="130" y1="10" x2="10" y2="200"/>
+        </g>
+        <!-- Spider body -->
+        <g transform="translate(130,130)">
+          <ellipse rx="28" ry="18" fill="#E0001B"/>
+          <ellipse cy="-28" rx="18" ry="22" fill="#E0001B"/>
+          <!-- Eyes -->
+          <ellipse cx="-8" cy="-30" rx="7" ry="5" fill="white" transform="rotate(-10,-8,-30)"/>
+          <ellipse cx="8" cy="-30" rx="7" ry="5" fill="white" transform="rotate(10,8,-30)"/>
+          <!-- Legs -->
+          <g stroke="#E0001B" stroke-width="3" fill="none" stroke-linecap="round">
+            <path d="M -20,-5 Q -55,-20 -80,-10"/>
+            <path d="M -22,0 Q -60,5 -85,20"/>
+            <path d="M -20,8 Q -55,30 -75,50"/>
+            <path d="M 20,-5 Q 55,-20 80,-10"/>
+            <path d="M 22,0 Q 60,5 85,20"/>
+            <path d="M 20,8 Q 55,30 75,50"/>
+          </g>
+        </g>
+        <!-- RAJESH text around circle -->
+        <text font-family="'Bebas Neue', sans-serif" font-size="11" fill="rgba(224,0,27,0.5)" letter-spacing="8">
+          <textPath href="#circle-path">RAJESH P ✦ FULL STACK DEVELOPER ✦  ✦</textPath>
+        </text>
+        <defs>
+          <path id="circle-path" d="M 130,20 A 110,110 0 1,1 129.9,20"/>
+        </defs>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" class="skills-bg">
+  <div class="panel-accent">SKILLS</div>
+  <div class="section-header reveal">
+    <span class="section-num">02</span>
+    <div class="section-title-wrap">
+      <span class="section-tag">Arsenal</span>
+      <h2 class="section-title">My Superpowers</h2>
+    </div>
+    <div class="section-line"></div>
+  </div>
+  <div class="skills-grid">
+    <div class="skill-category reveal">
+      <div class="skill-cat-title">⚡ Frontend</div>
+      <div class="skill-list">
+        <span class="skill-pill">React.js</span>
+        <span class="skill-pill">Next.js</span>
+        <span class="skill-pill">TypeScript</span>
+        <span class="skill-pill">JavaScript</span>
+        <span class="skill-pill">HTML5</span>
+        <span class="skill-pill">CSS3</span>
+        <span class="skill-pill"> CSS</span>
+        <span class="skill-pill">Ui/Uix designers</span>
+        <span class="skill-pill"> JavaScript</span>
+      </div>
+    </div>
+    <div class="skill-category reveal reveal-delay-1">
+      <div class="skill-cat-title">🔧 Backend</div>
+      <div class="skill-list">
+        <span class="skill-pill">Node.js</span>
+        <span class="skill-pill">Express.js</span>
+        <span class="skill-pill">Python</span>
+        <span class="skill-pill">MySQL</span>
+        <span class="skill-pill">REST APIs</span>
+        <span class="skill-pill">Socket.io</span>
+        <span class="skill-pill">MongoDB</span>
+      </div>
+    </div>
+    <div class="skill-category reveal reveal-delay-2">
+      <div class="skill-cat-title">🗄️ Database & Cloud</div>
+      <div class="skill-list">
+        <span class="skill-pill">MongoDB</span>
+        <span class="skill-pill">PostgreSQL</span>
+        <span class="skill-pill">MySQL</span>
+        <span class="skill-pill">Redis</span>
+        <span class="skill-pill">Firebase</span>
+        <span class="skill-pill">AWS</span>
+        <span class="skill-pill">Vercel</span>
+        <span class="skill-pill">Docker</span>
+      </div>
+    </div>
+    <div class="skill-category reveal reveal-delay-3">
+      <div class="skill-cat-title">🛠️ Tools & Workflow</div>
+      <div class="skill-list">
+        <span class="skill-pill">Git & GitHub</span>
+        <span class="skill-pill">VS Code</span>
+        <span class="skill-pill">Figma</span>
+        <span class="skill-pill">Postman</span>
+        <span class="skill-pill">Linux</span>
+        <span class="skill-pill">CI/CD</span>
+        <span class="skill-pill">Agile/Scrum</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="panel-accent">WORK</div>
+  <div class="section-header reveal">
+    <span class="section-num">03</span>
+    <div class="section-title-wrap">
+      <span class="section-tag">Portfolio</span>
+      <h2 class="section-title">Featured Projects</h2>
+    </div>
+    <div class="section-line"></div>
+  </div>
+  <div class="projects-grid">
+
+    <div class="project-card featured reveal">
+      <div class="project-img" style="background: linear-gradient(135deg, #0D1B5E 0%, #1A2F9E 50%, #E0001B 100%); font-size:6rem;">
+        ◈
+      </div>
+      <div class="project-body">
+        <div class="project-type">Featured · Full Stack</div>
+        <div class="project-title">Spider Portfolio</div>
+        <p class="project-desc">This very portfolio — an immersive, Spider-Man themed developer showcase built with React, featuring custom animations, 3D web effects, and a fully responsive design system.</p>
+        <div class="project-tech">
+          <span class="tech-badge">React.js</span>
+          <span class="tech-badge">Three.js</span>
+          <span class="tech-badge">Framer Motion</span>
+          <span class="tech-badge">Tailwind</span>
+          <span class="tech-badge">Vercel</span>
+        </div>
+        <div class="project-links">
+          <a href="#" class="proj-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Live Demo
+          </a>
+          <a href="#" class="proj-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card reveal reveal-delay-1">
+      <div class="project-img" style="background: linear-gradient(135deg, #0F6E56 0%, #1D9E75 100%); font-size:4rem;">⬡</div>
+      <div class="project-body">
+        <div class="project-type">Full Stack</div>
+        <div class="project-title">DevCollab Platform</div>
+        <p class="project-desc">A real-time developer collaboration platform with live code editing, chat, and GitHub integration.</p>
+        <div class="project-tech">
+          <span class="tech-badge">React</span>
+          <span class="tech-badge">Node.js</span>
+          <span class="tech-badge">Socket.io</span>
+          <span class="tech-badge">MongoDB</span>
+        </div>
+        <div class="project-links">
+          <a href="#" class="proj-link">Live Demo →</a>
+          <a href="#" class="proj-link">GitHub →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card reveal">
+      <div class="project-img" style="background: linear-gradient(135deg, #854F0B 0%, #EF9F27 100%); font-size:4rem;">◎</div>
+      <div class="project-body">
+        <div class="project-type">Backend</div>
+        <div class="project-title">API Gateway Service</div>
+        <p class="project-desc">A high-performance API gateway with rate limiting, authentication, and analytics dashboard.</p>
+        <div class="project-tech">
+          <span class="tech-badge">Node.js</span>
+          <span class="tech-badge">Redis</span>
+          <span class="tech-badge">PostgreSQL</span>
+          <span class="tech-badge">Docker</span>
+        </div>
+        <div class="project-links">
+          <a href="#" class="proj-link">Live Demo →</a>
+          <a href="#" class="proj-link">GitHub →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card reveal reveal-delay-1">
+      <div class="project-img" style="background: linear-gradient(135deg, #712B13 0%, #D85A30 100%); font-size:4rem;">⬟</div>
+      <div class="project-body">
+        <div class="project-type">Frontend</div>
+        <div class="project-title">E-Commerce Dashboard</div>
+        <p class="project-desc">A responsive admin dashboard with advanced data visualization, order management, and inventory control.</p>
+        <div class="project-tech">
+          <span class="tech-badge">Next.js</span>
+          <span class="tech-badge">TypeScript</span>
+          <span class="tech-badge">Recharts</span>
+          <span class="tech-badge">Tailwind</span>
+        </div>
+        <div class="project-links">
+          <a href="#" class="proj-link">Live Demo →</a>
+          <a href="#" class="proj-link">GitHub →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience" class="experience-bg">
+  <div class="panel-accent">EXP</div>
+  <div class="section-header reveal">
+    <span class="section-num">04</span>
+    <div class="section-title-wrap">
+      <span class="section-tag">Journey</span>
+      <h2 class="section-title">Experience</h2>
+    </div>
+    <div class="section-line"></div>
+  </div>
+  <div class="timeline">
+    <div class="timeline-item reveal">
+      <div class="timeline-dot current"></div>
+      <div class="exp-period">2023 — Present</div>
+      <div class="exp-title">Full Stack Developer</div>
+      <div class="exp-company">Freelance / Open Source</div>
+      <p class="exp-desc">Building end-to-end web applications for clients and contributing to open-source projects. Specializing in React-based frontends and Node.js backends with modern deployment pipelines.</p>
+      <div class="exp-tags">
+        <span class="tech-badge">React</span>
+        <span class="tech-badge">Next.js</span>
+        <span class="tech-badge">Node.js</span>
+        <span class="tech-badge">AWS</span>
+      </div>
+    </div>
+    <div class="timeline-item reveal">
+      <div class="timeline-dot"></div>
+      <div class="exp-period">2022 — 2023</div>
+      <div class="exp-title">Frontend Developer </div>
+      <div class="exp-company">Tech Startup, Chennai</div>
+      <p class="exp-desc">Developed and maintained responsive UI components, collaborated with designers to implement pixel-perfect interfaces, and improved application performance by 40% through code optimization.</p>
+      <div class="exp-tags">
+        <span class="tech-badge">React</span>
+        <span class="tech-badge">TypeScript</span>
+        <span class="tech-badge">Figma</span>
+      </div>
+    </div>
+    <div class="timeline-item reveal">
+      <div class="timeline-dot"></div>
+      <div class="exp-period">2020 — 2024</div>
+      <div class="exp-title">Bachelor Computer application</div>
+      <div class="exp-company">st.joseph's college,trichy</div>
+      <p class="exp-desc">Completed undergraduate studies in Computer Science, with strong focus on data structures, algorithms, web technologies, and software engineering principles.</p>
+      <div class="exp-tags">
+        <span class="tech-badge">DSA</span>
+        <span class="tech-badge">OS</span>
+        <span class="tech-badge">DBMS</span>
+        <span class="tech-badge">Networks</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact-section">
+  <div class="contact-grid">
+    <div class="contact-left reveal">
+      <h2>Let's <span>Swing</span><br>Into Action</h2>
+      <p>Have a project in mind? Want to collaborate or just say hi? My inbox is always open. Let's build something amazing together.</p>
+      <div class="contact-links">
+        <a href="mailto:rajesh@example.com" class="contact-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          rajesh@example.com
+        </a>
+        <a href="https://github.com" target="_blank" class="contact-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          github.com/rajesh
+        </a>
+        <a href="https://linkedin.com" target="_blank" class="contact-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          linkedin.com/in/rajesh-p
+        </a>
+        <a href="#" class="contact-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Chennai, Tamil Nadu, India
+        </a>
+      </div>
+    </div>
+    <div class="contact-form reveal reveal-delay-2">
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <input type="text" id="cf-name" class="form-input" placeholder="Peter Parker"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" id="cf-email" class="form-input" placeholder="peter@dailybugle.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <input type="text" id="cf-subject" class="form-input" placeholder="Project Inquiry"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea id="cf-message" class="form-input" placeholder="Tell me about your project..."></textarea>
+      </div>
+      <div id="cf-status" style="font-family:'Barlow Condensed',sans-serif;font-size:0.9rem;letter-spacing:0.1em;min-height:1.4rem;color:var(--red);"></div>
+      <button id="cf-btn" class="btn btn-primary" style="margin-top:0.3rem; width: 100%; justify-content: center;" onclick="sendMail()">
+        Send Message ↗
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 <span>Rajesh P</span> — Crafted with ❤️ and lots of ☕</p>
+  <p>Designed with <span>Spider-Man</span> energy · Chennai, India</p>
+</footer>
+
+<script>
+  /* ============================================================
+     EMAILJS SETUP
+     Steps to activate:
+     1. Go to https://www.emailjs.com and sign up (free)
+     2. Add an Email Service (Gmail recommended) → copy Service ID
+     3. Create an Email Template with variables:
+        {{from_name}}, {{from_email}}, {{subject}}, {{message}}
+        → copy Template ID
+     4. Go to Account → API Keys → copy Public Key
+     5. Replace the three placeholders below
+  ============================================================ */
+  const EJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // ← replace
+  const EJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // ← replace
+  const EJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // ← replace
+
+  emailjs.init({ publicKey: EJS_PUBLIC_KEY });
+
+  function sendMail() {
+    const name    = document.getElementById('cf-name').value.trim();
+    const email   = document.getElementById('cf-email').value.trim();
+    const subject = document.getElementById('cf-subject').value.trim();
+    const message = document.getElementById('cf-message').value.trim();
+    const status  = document.getElementById('cf-status');
+    const btn     = document.getElementById('cf-btn');
+
+    if (!name || !email || !message) {
+      status.style.color = '#FF1F38';
+      status.textContent = '⚠ Please fill in name, email, and message.';
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      status.style.color = '#FF1F38';
+      status.textContent = '⚠ Enter a valid email address.';
+      return;
+    }
+
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
+    status.style.color = 'rgba(245,245,245,0.5)';
+    status.textContent = 'Shooting the web…';
+
+    emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
+      from_name:  name,
+      from_email: email,
+      subject:    subject || 'Portfolio Contact',
+      message:    message,
+      reply_to:   email
+    }).then(() => {
+      status.style.color = '#1D9E75';
+      status.textContent = '🕷️ Message delivered! I\'ll get back to you soon.';
+      btn.textContent = 'Sent ✓';
+      btn.style.background = '#0D1B5E';
+      document.getElementById('cf-name').value = '';
+      document.getElementById('cf-email').value = '';
+      document.getElementById('cf-subject').value = '';
+      document.getElementById('cf-message').value = '';
+    }).catch(err => {
+      status.style.color = '#FF1F38';
+      status.textContent = '✗ Failed to send. Please email directly: rajesh@example.com';
+      btn.textContent = 'Send Message ↗';
+      btn.disabled = false;
+      console.error('EmailJS error:', err);
+    });
+  }
+
+  /* ============================================================
+     SPIDER CURSOR + WEB TRAIL
+  ============================================================ */
+  const spiderCursor = document.getElementById('spider-cursor');
+  const canvas = document.getElementById('web-canvas');
+  const ctx = canvas.getContext('2d');
+  let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+  let cx = mx, cy = my;
+  const trail = [];
+  const MAX_TRAIL = 28;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+  function drawWebTrail() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (trail.length < 2) return;
+    // Draw web strands between trail points every few steps
+    for (let i = 2; i < trail.length; i += 3) {
+      const alpha = (i / trail.length) * 0.35;
+      ctx.beginPath();
+      ctx.moveTo(trail[0].x, trail[0].y);
+      ctx.quadraticCurveTo(
+        trail[Math.floor(i / 2)].x,
+        trail[Math.floor(i / 2)].y,
+        trail[i].x, trail[i].y
+      );
+      ctx.strokeStyle = `rgba(224,0,27,${alpha})`;
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    }
+    // Main continuous thread
+    ctx.beginPath();
+    ctx.moveTo(trail[0].x, trail[0].y);
+    for (let i = 1; i < trail.length; i++) {
+      const alpha = 1 - i / trail.length;
+      ctx.lineTo(trail[i].x, trail[i].y);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  function animateCursor() {
+    cx += (mx - cx) * 0.14;
+    cy += (my - cy) * 0.14;
+    spiderCursor.style.left = cx + 'px';
+    spiderCursor.style.top  = cy + 'px';
+    trail.unshift({ x: cx, y: cy });
+    if (trail.length > MAX_TRAIL) trail.pop();
+    drawWebTrail();
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  document.querySelectorAll('a, button, .skill-pill, .project-card').forEach(el => {
+    el.addEventListener('mouseenter', () => spiderCursor.classList.add('hover'));
+    el.addEventListener('mouseleave', () => spiderCursor.classList.remove('hover'));
+  });
+
+  /* ============================================================
+     INTRO OVERLAY ANIMATION
+  ============================================================ */
+  document.body.classList.add('intro-active');
+
+  const overlay    = document.getElementById('intro-overlay');
+  const introName  = document.getElementById('introName');
+  const introSub   = document.getElementById('introSub');
+  const introSpider = document.getElementById('introSpider');
+  const webLine    = document.querySelector('.intro-web-line');
+
+  const heroItems = document.querySelectorAll('.hero-animate');
+
+  function runIntro() {
+    // 1. Web line drops
+    setTimeout(() => { overlay.classList.add('drop'); }, 100);
+
+    // 2. Spider drops in
+    setTimeout(() => {
+      introSpider.style.animationPlayState = 'running';
+    }, 200);
+
+    // 3. Glitch name appears
+    setTimeout(() => { introName.classList.add('show'); }, 900);
+
+    // 4. Sub title
+    setTimeout(() => { introSub.classList.add('show'); }, 1400);
+
+    // 5. Curtains open
+    setTimeout(() => { overlay.classList.add('open'); }, 2000);
+
+    // 6. Remove overlay, animate hero
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      document.body.classList.remove('intro-active');
+
+      heroItems.forEach((el, i) => {
+        el.style.transition = `opacity 0.75s ease ${i * 0.14}s, transform 0.75s cubic-bezier(0.34,1.28,0.64,1) ${i * 0.14}s`;
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      });
+    }, 3000);
+  }
+
+  window.addEventListener('load', runIntro);
+
+  /* ============================================================
+     SCROLL REVEAL
+  ============================================================ */
+  const reveals = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(r => revealObserver.observe(r));
+
+  /* ============================================================
+     NAV SHRINK
+  ============================================================ */
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 80) {
+      nav.style.background = 'rgba(10,10,15,0.97)';
+      nav.style.padding = '0.8rem 4rem';
+    } else {
+      nav.style.background = '';
+      nav.style.padding = '';
+    }
+  });
+</script>
+</body>
+</html>
